@@ -1,0 +1,23 @@
+name: Dashboard Sync Cron
+
+on:
+  schedule:
+    - cron: '*/2 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync GitHub PRs to Dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger GitHub sync
+        run: |
+          response=$(curl -s -w "\n%{http_code}" --max-time 30 "https://dashboard-bobo.online/api/github/sync")
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | sed '$d')
+          echo "HTTP $http_code: $body"
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            echo "Sync failed with HTTP $http_code"
+            exit 1
+          fi
+          echo "Sync succeeded"
