@@ -90,13 +90,13 @@ describe("env-config", () => {
   });
 
   describe("getEnvCostConfig()", () => {
-    it("returns {inputCost, outputCost} from env or null", async () => {
+    it("returns {inputCost, outputCost} from env (per-million-token rates converted to per-token)", async () => {
       vi.stubEnv("LLM_INPUT_COST", "0.002");
       vi.stubEnv("LLM_OUTPUT_COST", "0.004");
       vi.resetModules();
       const { getEnvCostConfig } = await import("../env-config");
       const config = getEnvCostConfig();
-      expect(config).toEqual({ inputCost: 0.002, outputCost: 0.004 });
+      expect(config).toEqual({ inputCost: 0.002 / 1_000_000, outputCost: 0.004 / 1_000_000 });
     });
 
     it("returns null when env costs are not set", async () => {

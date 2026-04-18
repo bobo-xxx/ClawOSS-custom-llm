@@ -27,16 +27,16 @@ describe("cost-models", () => {
   });
 
   describe("computeTokenCost()", () => {
-    it("uses LLM_INPUT_COST/LLM_OUTPUT_COST env vars when set", async () => {
-      vi.stubEnv("LLM_INPUT_COST", "0.001"); // $1000 per 1M tokens
-      vi.stubEnv("LLM_OUTPUT_COST", "0.002"); // $2000 per 1M tokens
+    it("uses LLM_INPUT_COST/LLM_OUTPUT_COST env vars when set (per-million rates)", async () => {
+      vi.stubEnv("LLM_INPUT_COST", "0.001"); // $0.001 per 1M tokens
+      vi.stubEnv("LLM_OUTPUT_COST", "0.002"); // $0.002 per 1M tokens
       vi.stubEnv("LLM_MODEL", undefined);
       vi.resetModules();
       const { computeTokenCost } = await import("../cost-models");
       
-      // 1000 input * 0.001 + 500 output * 0.002 = 1.0 + 1.0 = 2.0
+      // 1000 * (0.001/1M) + 500 * (0.002/1M) = 1e-6 + 1e-6 = 2e-6
       const cost = computeTokenCost(1000, 500);
-      expect(cost).toBeCloseTo(2.0, 6);
+      expect(cost).toBeCloseTo(2e-6, 12);
     });
 
     it("falls back to COST_MODELS lookup for known models", async () => {
@@ -83,8 +83,8 @@ describe("cost-models", () => {
     });
 
     it("returns env-driven cost when LLM_INPUT_COST set for custom model", async () => {
-      vi.stubEnv("LLM_INPUT_COST", "0.0005"); // $500 per 1M tokens
-      vi.stubEnv("LLM_OUTPUT_COST", "0.001"); // $1000 per 1M tokens
+      vi.stubEnv("LLM_INPUT_COST", "0.0005");
+      vi.stubEnv("LLM_OUTPUT_COST", "0.001");
       vi.stubEnv("LLM_MODEL", undefined);
       vi.resetModules();
       const { getCostModel } = await import("../cost-models");
@@ -93,8 +93,8 @@ describe("cost-models", () => {
       expect(result).not.toBeNull();
       expect(result?.name).toBe("custom/my-model");
       expect(result?.provider).toBe("custom");
-      expect(result?.inputCostPerToken).toBeCloseTo(0.0005, 10);
-      expect(result?.outputCostPerToken).toBeCloseTo(0.001, 10);
+      expect(result?.inputCostPerToken).toBeCloseTo(0.0005 / 1_000_000, 15);
+      expect(result?.outputCostPerToken).toBeCloseTo(0.001 / 1_000_000, 15);
     });
 
     it("returns null when no env costs set for unknown model", async () => {

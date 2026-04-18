@@ -110,8 +110,8 @@ describe("model-info", () => {
       const info = getCurrentModelInfo();
       expect(info.model).toBe("custom/my-model");
       expect(info.displayName).toBe("custom/my-model");
-      expect(info.inputCost).toBeCloseTo(0.0005, 10);
-      expect(info.outputCost).toBeCloseTo(0.001, 10);
+      expect(info.inputCost).toBeCloseTo(0.0005 / 1_000_000, 15);
+      expect(info.outputCost).toBeCloseTo(0.001 / 1_000_000, 15);
     });
   });
 });

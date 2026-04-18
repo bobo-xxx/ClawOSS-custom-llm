@@ -38,14 +38,17 @@ export function getEnvCostConfig(): EnvCostConfig | null {
     return null;
   }
   
-  const inputCost = parseFloat(inputCostStr);
-  const outputCost = parseFloat(outputCostStr);
+  const inputCostPerMillion = parseFloat(inputCostStr);
+  const outputCostPerMillion = parseFloat(outputCostStr);
   
-  if (isNaN(inputCost) || isNaN(outputCost)) {
+  if (isNaN(inputCostPerMillion) || isNaN(outputCostPerMillion)) {
     return null;
   }
   
-  return { inputCost, outputCost };
+  return {
+    inputCost: inputCostPerMillion / 1_000_000,
+    outputCost: outputCostPerMillion / 1_000_000,
+  };
 }
 
 export interface EnvModelMeta {

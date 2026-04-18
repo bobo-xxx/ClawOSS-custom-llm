@@ -26,6 +26,12 @@ export const COST_MODELS: Record<string, CostModel> = {
     inputCostPerToken: 0.45 / 1_000_000,
     outputCostPerToken: 2.2 / 1_000_000,
   },
+  "moonshot/kimi-k2.5": {
+    name: "Kimi K2.5 (Volcengine)",
+    provider: "moonshot",
+    inputCostPerToken: 0.6 / 1_000_000,
+    outputCostPerToken: 3.0 / 1_000_000,
+  },
   "minimax/MiniMax-M2.7": {
     name: "MiniMax M2.7",
     provider: "minimax",
