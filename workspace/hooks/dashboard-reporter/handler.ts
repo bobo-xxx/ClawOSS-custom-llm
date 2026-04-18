@@ -1,9 +1,31 @@
 const DASHBOARD_URL = process.env.DASHBOARD_URL || "https://clawoss-dashboard.vercel.app";
 const AGENT_ID = "clawoss";
 const GITHUB_USERNAME = "BillionClaw";
-// Kimi Code K2.5 direct API pricing: $0.60/M input, $3.00/M output (switched in commit c98540f)
-const INPUT_COST_PER_TOKEN = 0.6 / 1_000_000;
-const OUTPUT_COST_PER_TOKEN = 3.0 / 1_000_000;
+
+function getCostPerToken(): { input: number; output: number } {
+  const envInput = process.env.LLM_INPUT_COST;
+  const envOutput = process.env.LLM_OUTPUT_COST;
+  
+  if (envInput && envOutput) {
+    const input = parseFloat(envInput);
+    const output = parseFloat(envOutput);
+    if (!isNaN(input) && !isNaN(output)) {
+      return { input, output };
+    }
+  }
+  
+  return { input: 0.6 / 1_000_000, output: 3.0 / 1_000_000 };
+}
+
+const COST_PER_TOKEN = getCostPerToken();
+const INPUT_COST_PER_TOKEN = COST_PER_TOKEN.input;
+const OUTPUT_COST_PER_TOKEN = COST_PER_TOKEN.output;
+
+function getModel(): string {
+  return process.env.LLM_MODEL || "kimi-coding/k2p5";
+}
+
+const MODEL = getModel();
 
 let accumulatedInputTokens = 0;
 let accumulatedOutputTokens = 0;
@@ -166,10 +188,10 @@ async function postState(apiKey: string): Promise<void> {
         pipelineState,
         activeRepos: Array.from(reposUsed),
         metadata: {
-          agent_id: AGENT_ID,
-          tool_calls: toolCallCount,
-          model: "kimi-coding/k2p5",
-        },
+           agent_id: AGENT_ID,
+           tool_calls: toolCallCount,
+           model: MODEL,
+         },
       }),
       signal: controller.signal,
     });
@@ -545,12 +567,12 @@ const handler = async (event: {
           currentTask: lastSkillName || null,
           uptimeSeconds,
           metadata: {
-            session_key: sessionId,
-            tool_calls: toolCallCount,
-            model: "kimi-coding/k2p5",
-            repos: Array.from(reposUsed),
-            skill: lastSkillName,
-          },
+             session_key: sessionId,
+             tool_calls: toolCallCount,
+             model: MODEL,
+             repos: Array.from(reposUsed),
+             skill: lastSkillName,
+           },
         },
         apiKey
       );
@@ -566,15 +588,15 @@ const handler = async (event: {
           {
             metrics: [
               {
-                channel: "agent",
-                provider: "kimi-direct",
-                model: "kimi-coding/k2p5",
-                inputTokens: accumulatedInputTokens,
-                outputTokens: accumulatedOutputTokens,
-                costUsd: Math.round(costUsd * 1_000_000) / 1_000_000,
-                runDurationMs: accumulatedDurationMs,
-                contextTokens: accumulatedInputTokens,
-              },
+                 channel: "agent",
+                 provider: MODEL.split("/")[0] || "unknown",
+                 model: MODEL,
+                 inputTokens: accumulatedInputTokens,
+                 outputTokens: accumulatedOutputTokens,
+                 costUsd: Math.round(costUsd * 1_000_000) / 1_000_000,
+                 runDurationMs: accumulatedDurationMs,
+                 contextTokens: accumulatedInputTokens,
+               },
             ],
           },
           apiKey

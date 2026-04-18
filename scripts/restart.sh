@@ -99,10 +99,24 @@ REPO_CONFIG_RESOLVED=$(sed \
 
 _REPO_CONFIG="$REPO_CONFIG_RESOLVED" \
 _DEPLOYED="$DEPLOYED_CONFIG" \
+_LLM_MODEL="${LLM_MODEL:-}" \
+_LLM_API_KEY="${LLM_API_KEY:-}" \
+_LLM_BASE_URL="${LLM_BASE_URL:-}" \
+_LLM_API_TYPE="${LLM_API_TYPE:-}" \
+_LLM_FALLBACK_MODEL="${LLM_FALLBACK_MODEL:-}" \
+_LLM_FALLBACK_API_KEY="${LLM_FALLBACK_API_KEY:-}" \
+_LLM_INPUT_COST="${LLM_INPUT_COST:-}" \
+_LLM_OUTPUT_COST="${LLM_OUTPUT_COST:-}" \
+_LLM_CONTEXT_WINDOW="${LLM_CONTEXT_WINDOW:-}" \
+_LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-}" \
+_BUDGET_CAP_USD="${BUDGET_CAP_USD:-}" \
 _KIMI_KEY="${KIMI_API_KEY:-}" \
 _MINIMAX_KEY="${MINIMAX_API_KEY:-}" \
+_DEEPSEEK_KEY="${DEEPSEEK_API_KEY:-}" \
+_VOLCENGINE_KEY="${VOLCENGINE_API_KEY:-}" \
+_SILICONFLOW_KEY="${SILICONFLOW_API_KEY:-}" \
 _GH_TOKEN="${GITHUB_TOKEN:-}" \
-_DASH_URL="${DASHBOARD_URL:-https://clawoss-dashboard.vercel.app}" \
+_DASH_URL="${DASHBOARD_URL:-https://dashboard-bobo.online}" \
 _CLAW_KEY="${CLAW_API_KEY:-}" \
 _OPENROUTER_KEY="${OPENROUTER_API_KEY:-}" \
 python3 -c "
@@ -131,8 +145,25 @@ merged = deep_merge(deployed, repo_config)
 # Inject env vars (non-empty only)
 merged.setdefault('env', {})
 env_map = {
+    # Generic LLM config (primary)
+    'LLM_MODEL': os.environ.get('_LLM_MODEL', ''),
+    'LLM_API_KEY': os.environ.get('_LLM_API_KEY', ''),
+    'LLM_BASE_URL': os.environ.get('_LLM_BASE_URL', ''),
+    'LLM_API_TYPE': os.environ.get('_LLM_API_TYPE', ''),
+    'LLM_FALLBACK_MODEL': os.environ.get('_LLM_FALLBACK_MODEL', ''),
+    'LLM_FALLBACK_API_KEY': os.environ.get('_LLM_FALLBACK_API_KEY', ''),
+    'LLM_INPUT_COST': os.environ.get('_LLM_INPUT_COST', ''),
+    'LLM_OUTPUT_COST': os.environ.get('_LLM_OUTPUT_COST', ''),
+    'LLM_CONTEXT_WINDOW': os.environ.get('_LLM_CONTEXT_WINDOW', ''),
+    'LLM_MAX_TOKENS': os.environ.get('_LLM_MAX_TOKENS', ''),
+    'BUDGET_CAP_USD': os.environ.get('_BUDGET_CAP_USD', ''),
+    # Provider-specific keys (backward compat)
     'KIMI_API_KEY': os.environ.get('_KIMI_KEY', ''),
     'MINIMAX_API_KEY': os.environ.get('_MINIMAX_KEY', ''),
+    'DEEPSEEK_API_KEY': os.environ.get('_DEEPSEEK_KEY', ''),
+    'VOLCENGINE_API_KEY': os.environ.get('_VOLCENGINE_KEY', ''),
+    'SILICONFLOW_API_KEY': os.environ.get('_SILICONFLOW_KEY', ''),
+    # Infrastructure
     'GITHUB_TOKEN': os.environ.get('_GH_TOKEN', ''),
     'DASHBOARD_URL': os.environ.get('_DASH_URL', ''),
     'CLAW_API_KEY': os.environ.get('_CLAW_KEY', ''),
@@ -414,8 +445,8 @@ fi
 # ── Summary ───────────────────────────────────────────────────────────
 echo ""
 echo "=== ClawOSS V10 Running ==="
-echo "  Model: minimax/m2.7 (MiniMax M2.7, 204k context) + kimi-coding/k2p5 fallback"
-echo "  Dashboard: https://clawoss-dashboard.vercel.app"
+echo "  Model: ${LLM_MODEL:-minimax/MiniMax-M2.7} (configurable via LLM_MODEL env var)"
+echo "  Dashboard: ${DASHBOARD_URL:-https://dashboard-bobo.online}"
 echo "  Slots: 3 always-on (scout + PR monitor + PR analyst) + 10 impl/followup = 13"
 echo "  Heartbeat: 5m"
 echo "  Logs: openclaw logs"

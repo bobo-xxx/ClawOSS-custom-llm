@@ -1,7 +1,5 @@
-/**
- * Cost models for different LLM providers.
- * Prices are in USD per token.
- */
+import { getEnvCostConfig } from "./env-config";
+
 export interface CostModel {
   name: string;
   provider: string;
@@ -58,22 +56,59 @@ export const COST_MODELS: Record<string, CostModel> = {
     inputCostPerToken: 2.5 / 1_000_000,
     outputCostPerToken: 10.0 / 1_000_000,
   },
+  "deepseek/deepseek-v3.2": {
+    name: "DeepSeek V3.2",
+    provider: "deepseek",
+    inputCostPerToken: 0.5 / 1_000_000,
+    outputCostPerToken: 2.0 / 1_000_000,
+  },
+  "siliconflow/Pro/zai-org/GLM-5.1": {
+    name: "GLM-5.1 (SiliconFlow)",
+    provider: "siliconflow",
+    inputCostPerToken: 0.5 / 1_000_000,
+    outputCostPerToken: 2.0 / 1_000_000,
+  },
 };
 
-// Default model for the ClawOSS agent (switched to MiniMax M2.7 direct API)
-export const DEFAULT_MODEL = "minimax/MiniMax-M2.7";
-export const DEFAULT_COST_MODEL = COST_MODELS[DEFAULT_MODEL];
+const DEFAULT_MODEL_FALLBACK = "minimax/MiniMax-M2.7";
 
-/**
- * Compute the cost for a given token usage.
- * Falls back to the default Kimi Code pricing if model is unknown.
- */
+export function getDefaultModel(): string {
+  return process.env.LLM_MODEL || DEFAULT_MODEL_FALLBACK;
+}
+
+export const DEFAULT_MODEL = getDefaultModel();
+export const DEFAULT_COST_MODEL = COST_MODELS[DEFAULT_MODEL] || COST_MODELS[DEFAULT_MODEL_FALLBACK];
+
+export function getCostModel(model: string): CostModel | null {
+  if (COST_MODELS[model]) {
+    return COST_MODELS[model];
+  }
+  
+  const envCostConfig = getEnvCostConfig();
+  if (envCostConfig) {
+    const [provider, id] = model.includes("/") ? model.split("/") : ["custom", model];
+    return {
+      name: model,
+      provider: provider || "custom",
+      inputCostPerToken: envCostConfig.inputCost,
+      outputCostPerToken: envCostConfig.outputCost,
+    };
+  }
+  
+  return null;
+}
+
 export function computeTokenCost(
   inputTokens: number,
   outputTokens: number,
   model?: string
 ): number {
-  const costModel = (model && COST_MODELS[model]) || DEFAULT_COST_MODEL;
+  const envCostConfig = getEnvCostConfig();
+  if (envCostConfig) {
+    return inputTokens * envCostConfig.inputCost + outputTokens * envCostConfig.outputCost;
+  }
+  
+  const costModel = (model && getCostModel(model)) || DEFAULT_COST_MODEL;
   return (
     inputTokens * costModel.inputCostPerToken +
     outputTokens * costModel.outputCostPerToken

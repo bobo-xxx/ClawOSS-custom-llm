@@ -13,6 +13,7 @@
 
 URL="${DASHBOARD_URL:-https://clawoss-dashboard.vercel.app}"
 KEY="${CLAW_API_KEY:?Set CLAW_API_KEY env var}"
+DEFAULT_MODEL="${LLM_MODEL:-kimi-coding/k2p5}"
 # Sessions dir: check for the clawoss agent sessions, with fallback
 if [ -d "$HOME/.openclaw/agents/clawoss/sessions" ]; then
   DIR="$HOME/.openclaw/agents/clawoss/sessions"
@@ -166,9 +167,10 @@ while true; do
     NEW_COUNT=$((TOTAL_LINES - TOKEN_PREV))
     [ "$NEW_COUNT" -gt 200 ] && NEW_COUNT=200 && TOKEN_PREV=$((TOTAL_LINES - 200))
 
-    METRICS_PAYLOAD=$(tail -n "$NEW_COUNT" "$f" 2>/dev/null | _SID="$SID" python3 -c "
+    METRICS_PAYLOAD=$(tail -n "$NEW_COUNT" "$f" 2>/dev/null | _SID="$SID" _DEFAULT_MODEL="$DEFAULT_MODEL" python3 -c "
 import json, sys, os
 sid = os.environ['_SID']
+default_model = os.environ.get('_DEFAULT_MODEL', 'kimi-coding/k2p5')
 metrics = []
 for line in sys.stdin:
     line = line.strip()
@@ -194,7 +196,7 @@ for line in sys.stdin:
     metrics.append({
         'inputTokens': inp,
         'outputTokens': out,
-        'model': model or 'kimi-coding/k2p5',
+        'model': model or default_model,
         'channel': sid
     })
 if metrics:

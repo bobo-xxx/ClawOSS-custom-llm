@@ -28,6 +28,7 @@ import { AgentStatePanel } from "@/components/live/agent-state-panel";
 import { useAgentStatus } from "@/lib/hooks/use-agent-status";
 import { useConnectionStatus } from "@/lib/hooks/use-connection-status";
 import { useAgentState } from "@/lib/hooks/use-agent-state";
+import { useModelInfo } from "@/lib/hooks/use-model-info";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TerminalLoop } from "@/components/ascii/terminal-loop";
@@ -89,6 +90,7 @@ export default function OverviewPage() {
   const { data, isLoading } = useAgentStatus();
   const { data: connectionData } = useConnectionStatus();
   const { data: stateData, isLoading: stateLoading } = useAgentState();
+  const { data: modelInfo } = useModelInfo();
 
   const hasData = connectionData?.hasAnyData ||
     (data?.stats && (data.stats.totalPRs > 0 || data.stats.inputTokensToday > 0 || data.stats.outputTokensToday > 0)) ||
@@ -126,7 +128,7 @@ export default function OverviewPage() {
             </span>
           </div>
           <div className="flex items-center gap-3 text-muted-foreground/40">
-            <span>kimi-k2.5</span>
+            <span>{modelInfo?.displayName?.toLowerCase() || "loading..."}</span>
             <span className="text-muted-foreground/15">|</span>
             <span>parallel-agents</span>
             <span className="text-muted-foreground/15">|</span>
@@ -221,8 +223,8 @@ export default function OverviewPage() {
                 {connectionData.pipeline.errorsLastHour}
               </span></span>
               <span className="text-muted-foreground/10">|</span>
-              <span>model <span className="text-foreground/45">kimi-k2.5</span></span>
-              <span>cost <span className="text-foreground/45">$0.60/$3.00/M</span></span>
+              <span>model <span className="text-foreground/45">{modelInfo?.displayName?.toLowerCase() || "loading..."}</span></span>
+              <span>cost <span className="text-foreground/45">${((modelInfo?.inputCostPerToken || 0) * 1_000_000).toFixed(2)}/${((modelInfo?.outputCostPerToken || 0) * 1_000_000).toFixed(2)}/M</span></span>
               <span className="text-muted-foreground/10">|</span>
               <span>pii <span className="text-foreground/45">off</span></span>
             </div>

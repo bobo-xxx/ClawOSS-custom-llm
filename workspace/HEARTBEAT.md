@@ -37,6 +37,7 @@ Skills: `~/clawOSS/workspace/skills/{name}/SKILL.md`. Load with `read`.
 **0a. Quick status snapshot**: `bash /Users/kevinlin/clawOSS/scripts/heartbeat-status.sh` — shows queue depth, open PRs, locks, always-on status, wake state in one JSON call.
 **0a2. Context**: Use the `session_status` tool (NOT a bash command — it's an OpenClaw built-in tool). **>35%: COMPACT IMMEDIATELY** — flush state to memory files, then `/compact`. Do NOT proceed to any other step until context is under 35%. This is the #1 cause of gateway timeouts and stalled cycles.
 **0b. Circuit breakers**: Read wake-state.md (or use heartbeat-status.sh output). If errors_this_hour >= 5, pause 2 minutes then continue (never fully stop). consecutive_wakes is informational only — never use it to skip work.
+**0b-budget. Budget check**: If BUDGET_CAP_USD is set: fetch /api/metrics/budget. If isOverBudget: enter idle mode, skip work discovery (steps 3-5), log "budget-exceeded" to memory/budget-state.md, and proceed to step 6 (handle results) and step 7 (report). Do NOT spawn new implementation sub-agents when over budget. Resume normal operation when budget is no longer exceeded.
 **0b2. Cycle guardrails** (prevent runaway cycles and quota burn):
 - **Max cycle time**: If any single step takes >5 minutes, skip to the next step. Do not block the entire cycle.
 - **Context check mid-cycle**: If >35% context used after ANY step, compact IMMEDIATELY. Do not wait — context bloat causes gateway timeouts and stalled cycles. Compact early, compact often.

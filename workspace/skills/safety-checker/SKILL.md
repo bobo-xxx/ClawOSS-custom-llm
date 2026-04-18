@@ -25,7 +25,8 @@ Confirm that this PR is a valid contribution, NOT a large feature or refactor:
 
 ### 1. Budget Check
 Verify daily token spend hasn't exceeded cap before starting new work.
-Check memory for today's token usage. If over budget, abort and enter idle mode.
+Fetch /api/metrics/budget endpoint. If response.enabled is false, skip this check (no budget cap configured).
+If response.isOverBudget is true, abort and skip this PR submission. Log "ABORTED: budget exceeded" and wait for next heartbeat.
 
 ### 2. Diff Size (HARD GATE — abort if exceeded)
 Run `git diff --stat` and verify:

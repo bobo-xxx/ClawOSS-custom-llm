@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTokens, formatCost } from "@/lib/utils";
+import { useModelInfo } from "@/lib/hooks/use-model-info";
 
 interface FunnelData {
   submitted: number;
@@ -110,6 +111,8 @@ export function MetricCards({
   tokensPerMerge,
   avgHoursToReview,
 }: MetricCardsProps) {
+  const { data: modelInfo } = useModelInfo();
+  
   const mergeColor =
     mergeRate >= 50
       ? "text-emerald-400"
@@ -137,7 +140,7 @@ export function MetricCards({
     {
       label: "Cost/24h",
       value: formatCost(costToday),
-      sub: costToday > 0 ? "kimi k2.5" : null,
+      sub: costToday > 0 ? (modelInfo?.displayName || "model").toLowerCase() : null,
       bar: { value: costToday, max: 5 },
     },
     {

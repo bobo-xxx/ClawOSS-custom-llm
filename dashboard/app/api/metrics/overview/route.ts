@@ -108,10 +108,6 @@ export async function GET() {
       // Estimate 70/30 input/output split for fallback
       inputTokensToday = Math.round(tokensUsedToday * 0.7);
       outputTokensToday = tokensUsedToday - inputTokensToday;
-      // Estimate cost using Kimi K2.5 average ($1.8/M tokens)
-      if (tokensUsedToday > 0 && costToday === 0) {
-        costToday = tokensUsedToday * (1.8 / 1_000_000);
-      }
     }
 
     // Recent activity from logs

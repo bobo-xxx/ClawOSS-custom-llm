@@ -10,12 +10,15 @@ import {
 } from "@/components/ui/tooltip";
 import { ThemeToggle } from "./theme-toggle";
 import { ConnectionStatusIndicator } from "./connection-status-indicator";
+import { useModelInfo } from "@/lib/hooks/use-model-info";
 
 interface HeaderProps {
   title: string;
 }
 
 export function Header({ title }: HeaderProps) {
+  const { data: modelInfo } = useModelInfo();
+  
   return (
     <header className="flex h-11 shrink-0 items-center gap-2 border-b px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-20">
       <SidebarTrigger className="-ml-1" />
@@ -35,7 +38,7 @@ export function Header({ title }: HeaderProps) {
             <div className="text-xs space-y-1 max-w-[220px]">
               <p className="font-medium">PII Sanitizer Plugin</p>
               <p>
-                Disabled. Using Kimi Code direct API which has no
+                Disabled. Using {modelInfo?.displayName || "model"} ({modelInfo?.provider || "provider"}) API which has no
                 content filter restrictions on @ symbols.
               </p>
             </div>

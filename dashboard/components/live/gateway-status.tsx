@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { ConversationSession } from "@/lib/types";
+import { useModelInfo } from "@/lib/hooks/use-model-info";
 
 interface GatewayStatusProps {
   lastHeartbeat: string | null;
@@ -38,6 +39,7 @@ export function GatewayStatus({
 }: GatewayStatusProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+  const { data: modelInfo } = useModelInfo();
 
   const isOnline = connectionState === "connected";
   const isDegraded = connectionState === "degraded";
@@ -100,7 +102,7 @@ export function GatewayStatus({
         </div>
         <div className="flex justify-between">
           <span className="stat-label">Model</span>
-          <span className="text-foreground/60">kimi-coding/k2p5</span>
+          <span className="text-foreground/60">{modelInfo?.model || "loading..."}</span>
         </div>
         <div className="flex justify-between">
           <span className="stat-label">Auth</span>
