@@ -1,5 +1,5 @@
 export function getBudgetCapUsd(): number | null {
-  const budgetCapStr = process.env.BUDGET_CAP_USD;
+  const budgetCapStr = process.env.BUDGET_CAP_USD?.trim();
   
   if (!budgetCapStr) {
     return null;

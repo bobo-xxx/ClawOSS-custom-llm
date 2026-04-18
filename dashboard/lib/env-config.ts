@@ -1,21 +1,28 @@
+/** Trim whitespace/newlines from env var values (Vercel CLI <<< adds trailing newline) */
+function clean(v: string | undefined): string | null {
+  if (!v) return null;
+  const trimmed = v.trim();
+  return trimmed || null;
+}
+
 export function getEnvModel(): string | null {
-  return process.env.LLM_MODEL || null;
+  return clean(process.env.LLM_MODEL);
 }
 
 export function getEnvApiKey(): string | null {
-  return process.env.LLM_API_KEY || null;
+  return clean(process.env.LLM_API_KEY);
 }
 
 export function getEnvBaseUrl(): string | null {
-  return process.env.LLM_BASE_URL || null;
+  return clean(process.env.LLM_BASE_URL);
 }
 
 export function getEnvApiType(): string {
-  return process.env.LLM_API_TYPE || "openai-completions";
+  return clean(process.env.LLM_API_TYPE) || "openai-completions";
 }
 
 export function getEnvFallbackModel(): string | null {
-  return process.env.LLM_FALLBACK_MODEL || null;
+  return clean(process.env.LLM_FALLBACK_MODEL);
 }
 
 export interface EnvCostConfig {
@@ -24,8 +31,8 @@ export interface EnvCostConfig {
 }
 
 export function getEnvCostConfig(): EnvCostConfig | null {
-  const inputCostStr = process.env.LLM_INPUT_COST;
-  const outputCostStr = process.env.LLM_OUTPUT_COST;
+  const inputCostStr = clean(process.env.LLM_INPUT_COST);
+  const outputCostStr = clean(process.env.LLM_OUTPUT_COST);
   
   if (!inputCostStr || !outputCostStr) {
     return null;
@@ -47,8 +54,8 @@ export interface EnvModelMeta {
 }
 
 export function getEnvModelMeta(): EnvModelMeta {
-  const contextWindowStr = process.env.LLM_CONTEXT_WINDOW;
-  const maxTokensStr = process.env.LLM_MAX_TOKENS;
+  const contextWindowStr = clean(process.env.LLM_CONTEXT_WINDOW);
+  const maxTokensStr = clean(process.env.LLM_MAX_TOKENS);
   
   const contextWindow = contextWindowStr ? parseInt(contextWindowStr, 10) : 204800;
   const maxTokens = maxTokensStr ? parseInt(maxTokensStr, 10) : 131072;
