@@ -1,4 +1,4 @@
-import { getEnvCostConfig } from "./env-config";
+import { getEnvCostConfig, getEnvModel } from "./env-config";
 
 export interface CostModel {
   name: string;
@@ -73,7 +73,7 @@ export const COST_MODELS: Record<string, CostModel> = {
 const DEFAULT_MODEL_FALLBACK = "minimax/MiniMax-M2.7";
 
 export function getDefaultModel(): string {
-  return process.env.LLM_MODEL || DEFAULT_MODEL_FALLBACK;
+  return getEnvModel() || DEFAULT_MODEL_FALLBACK;
 }
 
 export const DEFAULT_MODEL = getDefaultModel();
