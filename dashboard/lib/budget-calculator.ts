@@ -4,6 +4,7 @@ export interface BudgetStatus {
   remaining: number;
   percentUsed: number;
   isOverBudget: boolean;
+  spentToday: number;
 }
 
 export function calculateBudgetStatus(spent: number, cap: number | null): BudgetStatus | null {
@@ -21,5 +22,6 @@ export function calculateBudgetStatus(spent: number, cap: number | null): Budget
     remaining,
     percentUsed,
     isOverBudget,
+    spentToday: 0, // caller must override with today's spend
   };
 }

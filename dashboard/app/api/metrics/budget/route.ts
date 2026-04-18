@@ -23,7 +23,15 @@ export async function GET() {
       })
       .from(metricsTokens);
 
+    const todayCostResult = await db
+      .select({
+        todayCost: sql<number>`COALESCE(SUM(cost_usd), 0)`,
+      })
+      .from(metricsTokens)
+      .where(sql`DATE(timestamp) = CURRENT_DATE`);
+
     const spent = totalCostResult[0]?.totalCost || 0;
+    const spentToday = todayCostResult[0]?.todayCost || 0;
 
     const budgetStatus = calculateBudgetStatus(spent, cap);
 
@@ -34,6 +42,7 @@ export async function GET() {
     return NextResponse.json({
       enabled: true,
       ...budgetStatus,
+      spentToday,
     });
   } catch (error) {
     return NextResponse.json(

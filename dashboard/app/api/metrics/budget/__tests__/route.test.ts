@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mockSelect = vi.fn();
 const mockFrom = vi.fn();
+const mockWhere = vi.fn();
 const mockGetBudgetCapUsd = vi.fn();
 const mockIsBudgetEnabled = vi.fn();
 
@@ -45,7 +46,11 @@ describe("budget API route", () => {
       mockSelect.mockReturnValue({
         from: mockFrom,
       });
-      mockFrom.mockResolvedValue([{ totalCost: 30.25 }]);
+      mockFrom.mockImplementationOnce(() => Promise.resolve([{ totalCost: 30.25 }]));
+      mockFrom.mockImplementationOnce(() => {
+        return { where: mockWhere };
+      });
+      mockWhere.mockResolvedValue([{ todayCost: 5.5 }]);
 
       vi.resetModules();
       const { GET } = await import("../route");
@@ -58,6 +63,7 @@ describe("budget API route", () => {
       expect(data.remaining).toBeCloseTo(19.75, 2);
       expect(data.percentUsed).toBeCloseTo(60.5, 1);
       expect(data.isOverBudget).toBe(false);
+      expect(data.spentToday).toBe(5.5);
     });
 
     it("returns isOverBudget=true when spent exceeds cap", async () => {
@@ -66,7 +72,11 @@ describe("budget API route", () => {
       mockSelect.mockReturnValue({
         from: mockFrom,
       });
-      mockFrom.mockResolvedValue([{ totalCost: 75 }]);
+      mockFrom.mockImplementationOnce(() => Promise.resolve([{ totalCost: 75 }]));
+      mockFrom.mockImplementationOnce(() => {
+        return { where: mockWhere };
+      });
+      mockWhere.mockResolvedValue([{ todayCost: 20 }]);
 
       vi.resetModules();
       const { GET } = await import("../route");
@@ -79,6 +89,7 @@ describe("budget API route", () => {
       expect(data.remaining).toBe(-25);
       expect(data.percentUsed).toBe(150);
       expect(data.isOverBudget).toBe(true);
+      expect(data.spentToday).toBe(20);
     });
 
     it("spent value comes from cumulative cost in metricsTokens table", async () => {
@@ -89,7 +100,11 @@ describe("budget API route", () => {
       mockSelect.mockReturnValue({
         from: mockFrom,
       });
-      mockFrom.mockResolvedValue([{ totalCost: mockTotalCost }]);
+      mockFrom.mockImplementationOnce(() => Promise.resolve([{ totalCost: mockTotalCost }]));
+      mockFrom.mockImplementationOnce(() => {
+        return { where: mockWhere };
+      });
+      mockWhere.mockResolvedValue([{ todayCost: 0 }]);
 
       vi.resetModules();
       const { GET } = await import("../route");
@@ -105,7 +120,11 @@ describe("budget API route", () => {
       mockSelect.mockReturnValue({
         from: mockFrom,
       });
-      mockFrom.mockResolvedValue([{ totalCost: 0 }]);
+      mockFrom.mockImplementationOnce(() => Promise.resolve([{ totalCost: 0 }]));
+      mockFrom.mockImplementationOnce(() => {
+        return { where: mockWhere };
+      });
+      mockWhere.mockResolvedValue([{ todayCost: 0 }]);
 
       vi.resetModules();
       const { GET } = await import("../route");

@@ -3,7 +3,7 @@ import { calculateBudgetStatus } from "../budget-calculator";
 
 describe("budget-calculator", () => {
   describe("calculateBudgetStatus()", () => {
-    it("returns { spent, cap, remaining, percentUsed, isOverBudget }", () => {
+    it("returns { spent, cap, remaining, percentUsed, isOverBudget, spentToday }", () => {
       const result = calculateBudgetStatus(30, 50);
       
       expect(result).toHaveProperty("spent", 30);
@@ -11,6 +11,7 @@ describe("budget-calculator", () => {
       expect(result).toHaveProperty("remaining");
       expect(result).toHaveProperty("percentUsed");
       expect(result).toHaveProperty("isOverBudget");
+      expect(result).toHaveProperty("spentToday", 0);
     });
 
     it("when spent=30, cap=50: remaining=20, percentUsed=60, isOverBudget=false", () => {
