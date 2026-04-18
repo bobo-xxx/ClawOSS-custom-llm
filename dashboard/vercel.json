@@ -4,6 +4,5 @@
       "path": "/api/github/sync",
       "schedule": "0 0 * * *"
     }
-  ],
-  "_comment": "Hobby plan only allows daily crons. GitHub Actions handles the 5-minute sync schedule."
+  ]
 }
