@@ -125,7 +125,7 @@ export function ConversationFeed({
   // Auto-scroll to bottom
   useEffect(() => {
     if (autoScroll && !isPaused && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [messages.length, autoScroll, isPaused]);
 

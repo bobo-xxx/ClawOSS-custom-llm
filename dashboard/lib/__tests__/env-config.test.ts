@@ -140,8 +140,8 @@ describe("env-config", () => {
       vi.resetModules();
       const { getEnvModelMeta } = await import("../env-config");
       const meta = getEnvModelMeta();
-      // Default values: MiniMax M2.7 specs
-      expect(meta).toEqual({ contextWindow: 204800, maxTokens: 131072 });
+      // Default values from spec
+      expect(meta).toEqual({ contextWindow: 128000, maxTokens: 8192 });
     });
   });
 });

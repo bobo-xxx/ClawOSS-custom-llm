@@ -142,16 +142,115 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 merged = deep_merge(deployed, repo_config)
 
+llm_model = os.environ.get('_LLM_MODEL', '')
+llm_api_key = os.environ.get('_LLM_API_KEY', '')
+llm_base_url = os.environ.get('_LLM_BASE_URL', '')
+llm_api_type = os.environ.get('_LLM_API_TYPE', '') or 'openai-completions'
+llm_fallback_model = os.environ.get('_LLM_FALLBACK_MODEL', '')
+llm_fallback_api_key = os.environ.get('_LLM_FALLBACK_API_KEY', '')
+
+legacy_kimi = os.environ.get('_KIMI_KEY', '')
+legacy_minimax = os.environ.get('_MINIMAX_KEY', '')
+legacy_deepseek = os.environ.get('_DEEPSEEK_KEY', '')
+legacy_volcengine = os.environ.get('_VOLCENGINE_KEY', '')
+legacy_siliconflow = os.environ.get('_SILICONFLOW_KEY', '')
+legacy_openrouter = os.environ.get('_OPENROUTER_KEY', '')
+
+# Backward compatibility mapping
+if not llm_api_key:
+    if legacy_minimax:
+        llm_api_key = legacy_minimax
+        if not llm_model:
+            llm_model = 'minimax/MiniMax-M2.7'
+    elif legacy_kimi:
+        llm_api_key = legacy_kimi
+        if not llm_model:
+            llm_model = 'kimi-coding/k2p5'
+
+# Startup validation: require model when no legacy defaults are available
+if not llm_model:
+    raise SystemExit('[FAIL] Missing LLM_MODEL. Set LLM_MODEL + LLM_API_KEY, or set MINIMAX_API_KEY / KIMI_API_KEY for legacy mapping.')
+
+def parse_model(model: str):
+    if '/' in model:
+        provider, model_id = model.split('/', 1)
+        return provider or 'custom', model_id or model
+    return 'custom', model
+
+provider, model_id = parse_model(llm_model)
+
+# Built-in provider defaults
+builtin_base_urls = {
+    'minimax': 'https://api.minimaxi.com/v1',
+    'deepseek': 'https://api.deepseek.com',
+    'openai': 'https://api.openai.com/v1',
+    'anthropic': 'https://api.anthropic.com/v1',
+    'google': 'https://generativelanguage.googleapis.com/v1beta/openai',
+    'mistral': 'https://api.mistral.ai/v1',
+    'groq': 'https://api.groq.com/openai/v1',
+    'siliconflow': 'https://api.siliconflow.cn/v1',
+    'moonshot': 'https://ark.cn-beijing.volces.com/api/coding/v3',
+    'openrouter': 'https://openrouter.ai/api/v1',
+}
+
+provider_api_keys = {
+    'minimax': llm_api_key or legacy_minimax,
+    'kimi-coding': llm_api_key or legacy_kimi,
+    'deepseek': llm_api_key or legacy_deepseek,
+    'moonshot': llm_api_key or legacy_volcengine,
+    'siliconflow': llm_api_key or legacy_siliconflow,
+    'openrouter': llm_api_key or legacy_openrouter,
+    'openai': llm_api_key,
+    'anthropic': llm_api_key,
+    'google': llm_api_key,
+    'mistral': llm_api_key,
+    'groq': llm_api_key,
+    'custom': llm_api_key,
+}
+
+selected_api_key = provider_api_keys.get(provider, llm_api_key)
+if not selected_api_key:
+    raise SystemExit(f'[FAIL] Missing API key for provider {provider}. Set LLM_API_KEY or provider-specific key.')
+
+context_window_raw = os.environ.get('_LLM_CONTEXT_WINDOW', '')
+max_tokens_raw = os.environ.get('_LLM_MAX_TOKENS', '')
+context_window = int(context_window_raw) if context_window_raw.isdigit() else 128000
+max_tokens = int(max_tokens_raw) if max_tokens_raw.isdigit() else 8192
+
+resolved_base_url = llm_base_url or builtin_base_urls.get(provider, '')
+
+# Inject dynamic provider config block
+merged.setdefault('models', {})
+merged['models']['mode'] = merged.get('models', {}).get('mode', 'merge')
+merged['models']['providers'] = {
+    provider: {
+        'baseUrl': resolved_base_url,
+        'apiKey': selected_api_key,
+        'api': llm_api_type,
+        'authHeader': True,
+        'models': [
+            {
+                'id': model_id,
+                'name': llm_model,
+                'reasoning': True,
+                'input': ['text'],
+                'contextWindow': context_window,
+                'maxTokens': max_tokens,
+            }
+        ],
+    }
+}
+
 # Inject env vars (non-empty only)
 merged.setdefault('env', {})
 env_map = {
     # Generic LLM config (primary)
-    'LLM_MODEL': os.environ.get('_LLM_MODEL', ''),
-    'LLM_API_KEY': os.environ.get('_LLM_API_KEY', ''),
-    'LLM_BASE_URL': os.environ.get('_LLM_BASE_URL', ''),
-    'LLM_API_TYPE': os.environ.get('_LLM_API_TYPE', ''),
-    'LLM_FALLBACK_MODEL': os.environ.get('_LLM_FALLBACK_MODEL', ''),
-    'LLM_FALLBACK_API_KEY': os.environ.get('_LLM_FALLBACK_API_KEY', ''),
+    'LLM_MODEL': llm_model,
+    'LLM_API_KEY': llm_api_key,
+    'LLM_BASE_URL': llm_base_url,
+    'LLM_API_TYPE': llm_api_type,
+    'LLM_FALLBACK_MODEL': llm_fallback_model,
+    'LLM_FALLBACK_API_KEY': llm_fallback_api_key or llm_api_key,
     'LLM_INPUT_COST': os.environ.get('_LLM_INPUT_COST', ''),
     'LLM_OUTPUT_COST': os.environ.get('_LLM_OUTPUT_COST', ''),
     'LLM_CONTEXT_WINDOW': os.environ.get('_LLM_CONTEXT_WINDOW', ''),

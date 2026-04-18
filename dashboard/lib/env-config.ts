@@ -60,11 +60,11 @@ export function getEnvModelMeta(): EnvModelMeta {
   const contextWindowStr = clean(process.env.LLM_CONTEXT_WINDOW);
   const maxTokensStr = clean(process.env.LLM_MAX_TOKENS);
   
-  const contextWindow = contextWindowStr ? parseInt(contextWindowStr, 10) : 204800;
-  const maxTokens = maxTokensStr ? parseInt(maxTokensStr, 10) : 131072;
+  const contextWindow = contextWindowStr ? parseInt(contextWindowStr, 10) : 128000;
+  const maxTokens = maxTokensStr ? parseInt(maxTokensStr, 10) : 8192;
   
   return {
-    contextWindow: isNaN(contextWindow) ? 204800 : contextWindow,
-    maxTokens: isNaN(maxTokens) ? 131072 : maxTokens,
+    contextWindow: isNaN(contextWindow) ? 128000 : contextWindow,
+    maxTokens: isNaN(maxTokens) ? 8192 : maxTokens,
   };
 }
